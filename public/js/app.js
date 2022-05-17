@@ -5381,15 +5381,41 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: ['animals'],
   data: function data() {
-    return {// animals: []
+    return {
+      name: ''
     };
   },
-  mounted: function mounted() {},
-  methods: {}
+  methods: {
+    destroySession: function destroySession() {
+      axios__WEBPACK_IMPORTED_MODULE_0___default().post('api/animal/destroy').then(function (res) {
+        location.reload();
+      });
+    }
+  }
 });
 
 /***/ }),
@@ -5422,39 +5448,129 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  props: ['onAnimal', 'onAnimalKinds'],
+  props: ['onAnimal', // 'onAnimalKinds',
+  'onAgeAnimals'],
   data: function data() {
     return {
+      show_animal_kinds: false,
+      show_input_name: false,
+      name_error: false,
       animal_kinds: {},
-      animal: []
+      animals: [],
+      animal: [],
+      animal_kind: '',
+      animal_name: '',
+      loading: false,
+      stop_age: false,
+      timer: false
     };
   },
   mounted: function mounted() {
     this.getAnimalKinds();
+    this.checkSession();
   },
   methods: {
+    showAnimalKinds: function showAnimalKinds() {
+      this.show_animal_kinds = !this.show_animal_kinds;
+    },
+    // Get all animal kinds
     getAnimalKinds: function getAnimalKinds() {
       var _this = this;
 
       axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/animal_kinds').then(function (res) {
-        _this.animal_kinds = res.data.message; // console.log(this.animal_kinds);
-        // this.onAnimalKinds({
-        //     animal_kinds: this.animal_kinds
-        // })
+        _this.animal_kinds = res.data.message;
       });
     },
-    getAnimal: function getAnimal(kind) {
+    // Check isset session
+    checkSession: function checkSession() {
       var _this2 = this;
 
-      axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/animal/' + kind).then(function (res) {
-        _this2.animal = res.data;
+      axios__WEBPACK_IMPORTED_MODULE_0___default().get('/api/animal/old').then(function (res) {
+        if (res.data.status) {
+          _this2.animals = res.data.data;
 
-        _this2.onAnimal({
-          animal: _this2.animal.message
-        });
+          _this2.onAnimal(_this2.animals);
+
+          _this2.ageAnimals();
+        }
       });
+    },
+    // Show name input field
+    showInputName: function showInputName(kind) {
+      this.show_input_name = true;
+      this.animal_kind = kind;
+    },
+    // Create animal with name and save in session
+    createAnimal: function createAnimal() {
+      var _this3 = this;
+
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/animal', {
+        name: this.animal_name,
+        kind: this.animal_kind
+      }).then(function (res) {
+        _this3.show_input_name = false;
+        _this3.loading = false;
+        _this3.animal_name = '';
+        _this3.name_error = false;
+        _this3.animals = res.data.data;
+
+        _this3.onAnimal(_this3.animals);
+
+        _this3.ageAnimals();
+      })["catch"](function (err) {
+        _this3.loading = false;
+        _this3.name_error = true;
+      });
+    },
+    // Age all animals
+    ageAnimals: function ageAnimals() {
+      var _this4 = this;
+
+      if (!this.timer) {
+        var aged = setInterval(function () {
+          axios__WEBPACK_IMPORTED_MODULE_0___default().post('/api/animal/age').then(function (res) {
+            _this4.timer = true;
+            _this4.animals = res.data.data;
+            _this4.stop_age = res.data.stop;
+
+            if (_this4.stop_age) {
+              clearInterval(aged);
+              _this4.timer = false;
+              _this4.stop_age = false;
+            }
+
+            ;
+          });
+
+          _this4.onAgeAnimals(_this4.animals);
+        }, 1500);
+      }
     }
   }
 });
@@ -5490,29 +5606,17 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
-      animals: [] // animal_kinds: {},
-
+      animals: [],
+      aged: []
     };
   },
   methods: {
     onAnimal: function onAnimal(data) {
-      var overlap = 0;
-      this.animals.forEach(function (element) {
-        if (element.kind == data.animal.kind) {
-          overlap++;
-        }
-      });
-
-      if (overlap == 0) {
-        this.animals.push(data.animal);
-      }
-
-      console.log(this.animals);
-    } // onAnimalKinds(data) {
-    //     this.animal_kinds = data;
-    //     console.log(data);
-    // },
-
+      this.animals = data;
+    },
+    onAgeAnimals: function onAgeAnimals(data) {
+      this.animals = data;
+    }
   }
 });
 
@@ -5546,7 +5650,8 @@ window.Vue = (__webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm.js
 // Vue.component('animal', require('./components/Animal.vue').default);
 // Vue.component('v-body', require('./components/Body.vue').default);
 
-Vue.component('v-main', (__webpack_require__(/*! ./components/Main.vue */ "./resources/js/components/Main.vue")["default"]));
+Vue.component('v-main', (__webpack_require__(/*! ./components/Main.vue */ "./resources/js/components/Main.vue")["default"])); // Vue.component('v-animal', require('./components/Animal.vue').default);
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -10641,7 +10746,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.animal-img[data-v-091c0f8d]{\n    padding-top: 10vh;\n}\nimg[data-v-091c0f8d]{\n    width: 100%;\n    height: inherit;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.animal-img[data-v-091c0f8d]{\n    padding-top: 10vh;\n}\nimg[data-v-091c0f8d]{\n    display: block;\n    margin-left: auto;\n    margin-right: auto;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -28772,12 +28877,60 @@ var render = function () {
     _c(
       "div",
       { staticClass: "row" },
-      _vm._l(_vm.animals, function (animal) {
-        return _c("div", { staticClass: "col-3 animal-img" }, [
-          _c("img", { attrs: { src: animal.img_path, alt: "" } }),
-        ])
-      }),
-      0
+      [
+        _vm.animals.length != 0
+          ? _c("div", { staticClass: "row mt-3" }, [
+              _c("div", { staticClass: "d-flex justify-content-center" }, [
+                _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-danger",
+                    attrs: { type: "button" },
+                    on: {
+                      click: function ($event) {
+                        return _vm.destroySession()
+                      },
+                    },
+                  },
+                  [_vm._v("Начать заново")]
+                ),
+              ]),
+            ])
+          : _vm._e(),
+        _vm._v(" "),
+        _vm._l(_vm.animals, function (animal) {
+          return _c("div", { staticClass: "col-3 animal-img" }, [
+            _c("div", { staticClass: "d-flex justify-content-center" }, [
+              _c("h4", [
+                _vm._v(
+                  "\n                    Имя: " +
+                    _vm._s(animal.name) +
+                    "\n                "
+                ),
+              ]),
+            ]),
+            _vm._v(" "),
+            _c("div", { staticClass: "d-flex justify-content-center" }, [
+              _c("h5", [
+                _vm._v(
+                  "\n                    Возраст: " +
+                    _vm._s(animal.age) +
+                    "\n                "
+                ),
+              ]),
+            ]),
+            _vm._v(" "),
+            _c("img", {
+              style: [
+                { width: (animal.size / animal.max_size) * 100 + "%" },
+                animal.age == 1 ? {} : { transition: "width 1.5s ease" },
+              ],
+              attrs: { src: animal.img_path },
+            }),
+          ])
+        }),
+      ],
+      2
     ),
   ])
 }
@@ -28804,65 +28957,164 @@ var render = function () {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { staticClass: "nav bg-dark" },
-    [
-      _c("div", { staticClass: "ms-2 mt-2 mb-2 select-animal white" }, [
+  return _c("div", [
+    _c(
+      "div",
+      { staticClass: "nav bg-dark" },
+      [
         _c(
-          "svg",
+          "div",
           {
-            staticClass: "bi bi-plus-circle",
-            attrs: {
-              xmlns: "http://www.w3.org/2000/svg",
-              width: "45",
-              height: "45",
-              fill: "currentColor",
-              viewBox: "0 0 16 16",
-            },
+            staticClass: "ms-2 mt-2 mb-2 select-animal white",
+            on: { click: _vm.showAnimalKinds },
           },
           [
-            _c("path", {
-              attrs: {
-                d: "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z",
+            _c(
+              "svg",
+              {
+                staticClass: "bi bi-plus-circle",
+                attrs: {
+                  xmlns: "http://www.w3.org/2000/svg",
+                  width: "45",
+                  height: "45",
+                  fill: "currentColor",
+                  viewBox: "0 0 16 16",
+                },
+              },
+              [
+                _c("path", {
+                  attrs: {
+                    d: "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z",
+                  },
+                }),
+                _vm._v(" "),
+                _c("path", {
+                  attrs: {
+                    d: "M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z",
+                  },
+                }),
+              ]
+            ),
+          ]
+        ),
+        _vm._v(" "),
+        _vm._l(_vm.animal_kinds, function (animal) {
+          return _vm.show_animal_kinds
+            ? _c(
+                "div",
+                {
+                  staticClass: "animal-circle mt-2 ms-2",
+                  on: {
+                    click: function ($event) {
+                      return _vm.showInputName(animal.kind)
+                    },
+                  },
+                },
+                [
+                  _c("img", {
+                    staticClass: "animal-img",
+                    attrs: {
+                      id: animal.kind,
+                      src: animal.img_path,
+                      alt: animal.kind,
+                    },
+                  }),
+                ]
+              )
+            : _vm._e()
+        }),
+      ],
+      2
+    ),
+    _vm._v(" "),
+    _vm.show_input_name
+      ? _c("div", { staticClass: "col-3 ms-2" }, [
+          _c("form", [
+            _c("div", { staticClass: "form-floating mt-3" }, [
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.animal_name,
+                    expression: "animal_name",
+                  },
+                ],
+                staticClass: "form-control",
+                attrs: {
+                  type: "text",
+                  id: "floatingInput",
+                  placeholder: "Назовите животное",
+                },
+                domProps: { value: _vm.animal_name },
+                on: {
+                  input: function ($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.animal_name = $event.target.value
+                  },
+                },
+              }),
+              _vm._v(" "),
+              _c("label", { attrs: { for: "floatingInput" } }, [
+                _vm._v("Назовите животное"),
+              ]),
+            ]),
+            _vm._v(" "),
+            _vm.name_error
+              ? _c("small", { staticClass: "text-danger" }, [
+                  _vm._v("Животному нужно имя!"),
+                ])
+              : _vm._e(),
+            _vm._v(" "),
+            _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.animal_kind,
+                  expression: "animal_kind",
+                },
+              ],
+              attrs: { type: "hidden" },
+              domProps: { value: _vm.animal_kind },
+              on: {
+                input: function ($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.animal_kind = $event.target.value
+                },
               },
             }),
             _vm._v(" "),
-            _c("path", {
-              attrs: {
-                d: "M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z",
-              },
-            }),
-          ]
-        ),
-      ]),
-      _vm._v(" "),
-      _vm._l(_vm.animal_kinds, function (animal) {
-        return _c(
-          "div",
-          {
-            staticClass: "animal-circle mt-2 ms-2",
-            on: {
-              click: function ($event) {
-                return _vm.getAnimal(animal.kind)
-              },
-            },
-          },
-          [
-            _c("img", {
-              staticClass: "animal-img",
-              attrs: {
-                id: animal.kind,
-                src: animal.img_path,
-                alt: animal.kind,
-              },
-            }),
-          ]
-        )
-      }),
-    ],
-    2
-  )
+            _c("div", { staticClass: "mt-3 mb-3" }, [
+              _c(
+                "button",
+                {
+                  staticClass: "btn btn-success",
+                  on: {
+                    click: function ($event) {
+                      $event.preventDefault()
+                      return _vm.createAnimal(_vm.animal.kind)
+                    },
+                  },
+                },
+                [
+                  _vm.loading
+                    ? _c("span", {
+                        staticClass: "spinner-grow spinner-grow-sm",
+                        attrs: { role: "status", "aria-hidden": "true" },
+                      })
+                    : _c("span", [_vm._v("Сохранить")]),
+                ]
+              ),
+            ]),
+          ]),
+        ])
+      : _vm._e(),
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -28890,7 +29142,9 @@ var render = function () {
   return _c(
     "div",
     [
-      _c("v_header", { attrs: { onAnimal: _vm.onAnimal } }),
+      _c("v_header", {
+        attrs: { onAnimal: _vm.onAnimal, onAgeAnimals: _vm.onAgeAnimals },
+      }),
       _vm._v(" "),
       _c("v_body", { attrs: { animals: _vm.animals } }),
     ],

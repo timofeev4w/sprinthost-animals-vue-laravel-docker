@@ -16,4 +16,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('animal_kinds', [AnimalsController::class, 'getAnimalKinds']);
-Route::get('animal/{kind}', [AnimalsController::class, 'getAnimal']);
+Route::get('animal/old', [AnimalsController::class, 'checkSession']);
+// Route::get('animal/{kind}', [AnimalsController::class, 'getAnimal']);  // Оставил метод получения параметров контретного животного
+Route::post('animal', [AnimalsController::class, 'createAnimal']);
+Route::post('animal/age', [AnimalsController::class, 'ageAnimal']);
+
+
+Route::post('animal/destroy', [AnimalsController::class, 'destroySession']);
+

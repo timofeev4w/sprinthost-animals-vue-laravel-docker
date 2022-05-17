@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v_header :onAnimal="onAnimal" ></v_header>
+        <v_header :onAnimal="onAnimal" :onAgeAnimals="onAgeAnimals"></v_header>
         <v_body :animals="animals" ></v_body>
     </div>
 </template>
@@ -17,28 +17,17 @@
 
         data: () => ({
             animals: [],
-            // animal_kinds: {},
+            aged: []
         }),
 
         methods: {
             onAnimal(data) {
-                let overlap = 0;
-                this.animals.forEach(element => {
-                    if (element.kind == data.animal.kind) {
-                        overlap++;
-                    }
-                });
-
-                if (overlap == 0) {
-                    this.animals.push(data.animal);
-                }
-                console.log(this.animals);
+                this.animals = data;
             },
 
-            // onAnimalKinds(data) {
-            //     this.animal_kinds = data;
-            //     console.log(data);
-            // },
+            onAgeAnimals(data) {
+                this.animals = data;
+            }
         }
     }
 </script>

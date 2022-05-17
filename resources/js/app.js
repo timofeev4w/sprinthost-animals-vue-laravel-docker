@@ -24,6 +24,7 @@ window.Vue = require('vue').default;
 // Vue.component('animal', require('./components/Animal.vue').default);
 // Vue.component('v-body', require('./components/Body.vue').default);
 Vue.component('v-main', require('./components/Main.vue').default);
+// Vue.component('v-animal', require('./components/Animal.vue').default);
 
 
 

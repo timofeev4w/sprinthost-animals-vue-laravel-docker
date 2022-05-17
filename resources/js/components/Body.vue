@@ -1,9 +1,29 @@
 <template>
     <div class="container-fluid">
         <div class="row">
-            <!-- <div v-for="animal_kind in animal_kinds" class="col-3 animal-img"> -->
+            <div v-if="animals.length != 0" class="row mt-3">
+                <div class="d-flex justify-content-center">
+                    <button @click="destroySession()" type="button" class="btn btn-danger">Начать заново</button>
+                </div>
+            </div>
+
             <div v-for="animal in animals" class="col-3 animal-img">
-                <img :src="animal.img_path" alt="">
+                <div class="d-flex justify-content-center">
+                    <h4 >
+                        Имя: {{ animal.name }}
+                    </h4>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <h5>
+                        Возраст: {{ animal.age }}
+                    </h5>
+                </div>
+
+                <img 
+                :src="animal.img_path" 
+                :style="[{width : (animal.size/animal.max_size) * 100 + '%'},
+                        animal.age == 1 ? {} : {transition: 'width 1.5s ease'}]">
             </div>
         </div>
     </div>
@@ -16,15 +36,16 @@
         props: ['animals'],
 
         data: () => ({
-            // animals: []
+            name: '',
         }),
 
-        mounted() {
-
-        },
-
         methods: {
-
+            destroySession() {
+                axios.post('api/animal/destroy')
+                    .then(res => {
+                        location.reload();
+                    });
+            }
         }
     }
 </script>
@@ -35,7 +56,8 @@
     }
 
     img{
-        width: 100%;
-        height: inherit;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
 </style>
